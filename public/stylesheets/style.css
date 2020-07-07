@@ -1,0 +1,17 @@
+#myCanvas
+{
+    background: #a79393;
+    border: black solid 10px;
+    width: 900px;
+    height: 450px;
+}
+
+#input
+{
+    width: 300px;
+}
+
+#chatWindow
+{
+    width: 1000px;
+}
