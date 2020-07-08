@@ -166,6 +166,9 @@
 
 //draw();
 
+const socket = io();
+
+
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
@@ -183,6 +186,7 @@ let x = Math.random() * ((canvas.width - 0));
 let y = 0;
 let dx = 1;
 let dy = 1;
+let speed = 1;
 
 let dir = direction.NONE
 
@@ -213,52 +217,53 @@ function keyUpHandler(e) {
 }
 
 
-function move() {
+socket.emit("new user", {x, y}, speed);
+socket.on("new user", (point, speed, id)=>{
+    console.log("new player added");
+    players[id] = ({x: point.x, y: point.y, speed: speed})
+});
 
-    socket.emit('movement', (dir)=>{
-        console.log("direction = ", dir);
-    });
-    // switch (dir) {
-    //     case direction.UP: {
-    //         y -= dy;
-    //         break;
-    //     }
-    //     case direction.RIGHT: {
-    //         x += dx;
-    //         break;
-    //     }
-    //     case direction.LEFT: {
-    //         x -= dx;
-    //         break;
-    //     }
-    //     case direction.DOWN: {
-    //         y += dy;
-    //         break;
-    //     }
-    //
-    // }
+function move() {
+    socket.emit('movement', (dir));
+    console.log("direction = ", dir);
 }
 
+
+let players = {};
+let id = 0;
+
+
 function draw() {
-    console.log("x = ", x, ", y = ", y);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //  console.log("x = ", x, ", y = ", y);
+  //  ctx.clearRect(0, 0, canvas.width, canvas.height);
     move();
-    ctx.beginPath();
-    ctx.arc(x, y, 10, 0, 360);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
+    // console.log("player numbers: ", players.length);
+    // for (let id in players) {
+    //     ctx.beginPath();
+    //     ctx.arc(players[id].x, players[id].y, 10, 0, 360);
+    //     ctx.fillStyle = "#0095DD";
+    //     ctx.fill();
+    //     ctx.closePath();
+    // }
     requestAnimationFrame(draw);
 }
 draw()
 
+socket.on('state', (players)=>{
+    for (let id in players) {
+        ctx.beginPath();
+        ctx.arc(players[id].x, players[id].y, 10, 0, 360);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+})
 
-const socket = io()
 socket.on('connect', ()=>{
    console.log("abcaba")
 });
 
-socket.emit("new user", {x, y});
+
 
 document.getElementById("form").addEventListener('submit', (e)=>{
     e.preventDefault();

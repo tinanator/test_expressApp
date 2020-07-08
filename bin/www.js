@@ -8,6 +8,14 @@ const app = require('../app');
 const debug = require('debug')('express-test:server');
 const http = require('http');
 
+const direction = {
+    UP: 1,
+    DOWN: 2,
+    LEFT: 3,
+    RIGHT: 4,
+    NONE: 0
+}
+
 
 /**
  * Get port from environment and store in Express.
@@ -44,38 +52,45 @@ server.on('listening', onListening);
  */
 
 const PLAYER_LIST = {}
+const SPEED = 1
+
 
 io.on("connect", socket=> {
-  socket.on("new user", (point) => {
-    PLAYER_LIST[socket.id] = {
-      x: point.x,
-      y: point.y
-    }
-    console.log("new user connected, id = ", socket.id)
-    setInterval(()=>{
-      console.log(socket.id, ": x = ", PLAYER_LIST[socket.id].x, ", y = ", PLAYER_LIST[socket.id].y);
-    }, 1000)
-  });
+    setInterval(function() {
+        io.sockets.emit('state', PLAYER_LIST);
+    }, 1000 / 60);
+    socket.on("new user", (point, speed) => {
+        PLAYER_LIST[socket.id] = {
+          x: point.x,
+          y: point.y,
+          speed: speed
+        }
+        socket.emit("new user", point, speed, socket.id);
+        console.log("new user connected, id = ", socket.id)
+        setInterval(()=>{
+          console.log(socket.id, ": x = ", PLAYER_LIST[socket.id].x, ", y = ", PLAYER_LIST[socket.id].y);
+        }, 1000)
+    });
 
-  socket.on("movement", (dir)=>{
-      switch (dir) {
+  socket.on("movement", (data)=>{
+      let v = PLAYER_LIST[socket.id].speed;
+      switch (data) {
           case direction.UP: {
-              PLAYER_LIST[socket.id].y -= 1;
+              PLAYER_LIST[socket.id].y -= v;
               break;
           }
           case direction.RIGHT: {
-              PLAYER_LIST[socket.id].x += 1;
+              PLAYER_LIST[socket.id].x += v;
               break;
           }
           case direction.LEFT: {
-              PLAYER_LIST[socket.id].x -= 1;
+              PLAYER_LIST[socket.id].x -= v;
               break;
           }
           case direction.DOWN: {
-              PLAYER_LIST[socket.id].y += 1;
+              PLAYER_LIST[socket.id].y += v;
               break;
           }
-
       }
   });
 
