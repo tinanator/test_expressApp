@@ -250,6 +250,7 @@ function draw() {
 draw()
 
 socket.on('state', (players)=>{
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let id in players) {
         ctx.beginPath();
         ctx.arc(players[id].x, players[id].y, 10, 0, 360);
